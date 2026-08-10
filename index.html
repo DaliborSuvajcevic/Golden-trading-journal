@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Golden Trading Journal</title>
+    <!-- Decimal.js for precise calculations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/decimal.js/10.4.3/decimal.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Login / Setup Screen -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-card">
+            <h1>👑 Golden Trading Journal</h1>
+            <p>Unesite početni balans računa da biste počeli.</p>
+            <input type="number" id="initialBalanceInput" placeholder="npr. 10000" step="0.01">
+            <button id="startJournalBtn" class="btn btn-primary pulse-gold">Započni Journal</button>
+            <button id="resetJournalBtn" class="btn btn-secondary mt-20">Resetuj Journal</button>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="mainApp" class="hidden">
+        <header class="app-header">
+            <div class="container header-content">
+                <div>
+                    <h1>👑 Golden Trading Journal</h1>
+                    <div class="balance-display">
+                        <span class="balance-label">Balans Računa:</span>
+                        <span id="headerBalance" class="balance-value">$0.00</span>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <div class="streak-display">
+                        <span class="streak-icon">🔥</span>
+                        <span id="streakCount">0</span> dana discipline
+                    </div>
+                    <button id="infoBtn" class="btn btn-small btn-secondary" title="Kako koristiti">ℹ️ Info</button>
+                    <button id="settingsBtn" class="btn btn-small btn-secondary" title="Podešavanja">⚙️ Podešavanja</button>
+                    <button id="logoutBtn" class="btn btn-small btn-secondary">Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="container">
+            <!-- Tilt Warning -->
+            <div id="tiltWarning" class="tilt-warning hidden">
+                <div class="tilt-warning-content">
+                    <span class="tilt-icon">⚠️</span>
+                    <div class="tilt-message">
+                        <strong>Detektovan TILT režim!</strong>
+                        <p>Imate <span id="tiltLossCount">0</span> uzastopna gubitka. Preporučujemo pauzu od <span id="tiltTimer">00:00</span> minuta.</p>
+                    </div>
+                    <button id="dismissTiltBtn" class="btn btn-small btn-secondary">Razumem</button>
+                </div>
+            </div>
+
+            <!-- Dashboard Stats -->
+            <section class="section">
+                <h2 class="section-title">Professional Dashboard</h2>
+                <div class="dashboard-grid">
+                    <div class="stat-card">
+                        <h3>Net PnL</h3>
+                        <div id="balanceCard" class="value">$0.00</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Win Rate</h3>
+                        <div id="winRateCard" class="value">0%</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Avg R:R</h3>
+                        <div id="avgRRCard" class="value">0.00</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Total Trades</h3>
+                        <div id="totalTradesCard" class="value">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Max Drawdown</h3>
+                        <div id="drawdownCard" class="value">$0.00</div>
+                    </div>
+                </div>
+
+                <div class="dashboard-charts">
+                    <div class="chart-card">
+                        <h3>📈 Equity Curve</h3>
+                        <div id="equityCurve"></div>
+                    </div>
+                    <div class="chart-card">
+                        <h3>🎯 Win/Loss Ratio</h3>
+                        <div id="winLossRatio" class="win-loss-ratio" data-percent="0%"></div>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 10px;">Dynamic win rate based on your trades</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Heatmap & Goals -->
+            <section class="section">
+                <div class="dashboard-charts">
+                    <div class="heatmap-container">
+                        <div class="heatmap-header">
+                            <h3>📅 Trading Heatmap</h3>
+                            <div>
+                                <button id="prevMonthBtn" class="btn btn-small btn-secondary">◀</button>
+                                <span id="heatmapMonth" style="margin: 0 10px; color: var(--gold); font-weight: bold;"></span>
+                                <button id="nextMonthBtn" class="btn btn-small btn-secondary">▶</button>
+                            </div>
+                        </div>
+                        <div id="heatmapGrid" class="heatmap-grid"></div>
+                        <div class="heatmap-legend">
+                            <span>Loss</span>
+                            <div class="legend-gradient"></div>
+                            <span>Profit</span>
+                        </div>
+                    </div>
+
+                    <div class="goals-container">
+                        <div class="goal-card">
+                            <div class="goal-header">
+                                <h3>Max Trades per Day</h3>
+                                <span id="tradesTodayCount">0/5</span>
+                            </div>
+                            <div class="goal-progress">
+                                <div id="tradesProgress" class="progress-bar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="goal-card">
+                            <div class="goal-header">
+                                <h3>Max Daily Loss (%)</h3>
+                                <span id="dailyLossCount">0%/5%</span>
+                            </div>
+                            <div class="goal-progress">
+                                <div id="lossProgress" class="progress-bar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="goal-card">
+                            <div class="goal-header">
+                                <h3>Plan Followed</h3>
+                                <span id="planFollowedCount">0/0</span>
+                            </div>
+                            <div class="goal-progress">
+                                <div id="planProgress" class="progress-bar success" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Smart Insights -->
+            <section class="section">
+                <h2 class="section-title">💡 Smart Insights</h2>
+                <div id="smartSuggestions" class="suggestions-container">
+                    <div class="suggestion-card info"><p>📊 Dodajte više tradeova za personalizovane preporuke.</p></div>
+                </div>
+            </section>
+
+            <!-- Add Trade Form -->
+            <section class="section">
+                <h2 class="section-title">Add Trade</h2>
+                <div class="form-container">
+                    <form id="addTradeForm">
+                        <div class="form-grid-two-col">
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label>Trading Pair *</label>
+                                    <input type="text" id="pair" class="form-control" placeholder="EURUSD" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Date & Time *</label>
+                                    <input type="datetime-local" id="date" class="form-control" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Risk (%) *</label>
+                                    <input type="number" id="riskPercent" class="form-control" step="0.01" placeholder="1.0" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Order Type *</label>
+                                    <div class="toggle-group">
+                                        <div class="toggle-option" data-value="long">Buy ▲</div>
+                                        <div class="toggle-option" data-value="short">Sell ▼</div>
+                                    </div>
+                                    <input type="hidden" id="direction" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Entry Price *</label>
+                                    <input type="number" id="entry" class="form-control" step="0.00001" required>
+                                    <span id="entryError" class="form-error"></span>
+                                </div>
+                                <div class="form-group">
+                                    <label>Stop Loss *</label>
+                                    <input type="number" id="stopLoss" class="form-control" step="0.00001" required>
+                                    <span id="stopLossError" class="form-error"></span>
+                                </div>
+                                <div class="form-group">
+                                    <label>Take Profit *</label>
+                                    <input type="number" id="takeProfit" class="form-control" step="0.00001" required>
+                                </div>
+                            </div>
+                            <div class="form-column">
+                                <div class="form-group">
+                                    <label>Setup Type *</label>
+                                    <div class="toggle-group">
+                                        <div class="toggle-option" data-value="breakout">Breakout</div>
+                                        <div class="toggle-option" data-value="pullback">Pullback</div>
+                                        <div class="toggle-option" data-value="reversal">Reversal</div>
+                                        <div class="toggle-option" data-value="range">Range</div>
+                                    </div>
+                                    <input type="hidden" id="setup" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Session *</label>
+                                    <div class="toggle-group">
+                                        <div class="toggle-option" data-value="asia">Asia</div>
+                                        <div class="toggle-option" data-value="london">London</div>
+                                        <div class="toggle-option" data-value="ny">New York</div>
+                                        <div class="toggle-option" data-value="overlap">Overlap</div>
+                                    </div>
+                                    <input type="hidden" id="session" required>
+                                </div>
+                                <div class="form-group emotion-container">
+                                    <label>Emotional State (1–10) * <span id="emotionValue" style="color:var(--gold)">5</span></label>
+                                    <input type="range" id="emotion" min="1" max="10" value="5" class="form-control" style="padding: 0;">
+                                    <div class="emotion-meter"><div id="emotionFill" class="emotion-fill" style="width: 50%"></div></div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Followed Trading Plan? *</label>
+                                    <div class="toggle-group">
+                                        <div class="toggle-option" data-value="yes">Yes</div>
+                                        <div class="toggle-option" data-value="no">No</div>
+                                    </div>
+                                    <input type="hidden" id="followedPlan" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Result *</label>
+                                    <div class="toggle-group">
+                                        <div class="toggle-option" data-value="win">Win</div>
+                                        <div class="toggle-option" data-value="loss">Loss</div>
+                                        <div class="toggle-option" data-value="be">BE</div>
+                                    </div>
+                                    <input type="hidden" id="result">
+                                </div>
+                                <div class="form-group">
+                                    <label>Exit Price (Optional)</label>
+                                    <input type="number" id="exitPrice" class="form-control" step="0.00001" placeholder="Auto-calculate if empty">
+                                </div>
+                                <div class="form-group">
+                                    <label>Notes (Optional)</label>
+                                    <textarea id="notes" class="form-control" rows="2"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary pulse-gold">📝 Record Trade</button>
+                        </div>
+                    </form>
+                    
+                    <div class="form-actions mt-20" style="border-top: 1px solid var(--border); padding-top: 20px;">
+                        <button id="exportCsvBtn" class="btn btn-secondary">📤 Export CSV</button>
+                        <button id="backupBtn" class="btn btn-secondary">💾 Backup JSON</button>
+                        <button id="restoreBtn" class="btn btn-secondary">📥 Restore JSON</button>
+                        <input type="file" id="restoreFile" accept=".json" style="display: none;">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Analytics -->
+            <section class="section">
+                <h2 class="section-title">Performance Analytics</h2>
+                <div class="analytics-grid">
+                    <div class="analytics-card">
+                        <h3>📊 Performance by Setup</h3>
+                        <div id="setupsAnalytics">No data</div>
+                    </div>
+                    <div class="analytics-card">
+                        <h3>🌍 Performance by Session</h3>
+                        <div id="sessionsAnalytics">No data</div>
+                    </div>
+                    <div class="analytics-card">
+                        <h3>😐 Emotional State vs Result</h3>
+                        <div id="emotionAnalytics">Avg Emotion (Wins): 0 | Avg Emotion (All): 0</div>
+                    </div>
+                    <div class="analytics-card">
+                        <h3>🏆 Best & Worst</h3>
+                        <div id="bestWorstAnalytics">No data</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Trade History -->
+            <section class="section history-section">
+                <h2 class="section-title">Trade History</h2>
+                <div class="table-controls">
+                    <input type="text" id="searchTrade" class="form-control" placeholder="Search pair, setup..." style="max-width: 300px;">
+                    <select id="filterResult" class="form-control" style="max-width: 200px;">
+                        <option value="all">All Results</option>
+                        <option value="Win">Wins</option>
+                        <option value="Loss">Losses</option>
+                    </select>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Pair</th>
+                                <th>Setup</th>
+                                <th>Session</th>
+                                <th>Risk %</th>
+                                <th>R:R</th>
+                                <th>Result</th>
+                                <th>Plan</th>
+                                <th>Emotion</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tradeHistoryBody">
+                            <!-- Rows injected via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <footer>
+    <div class="container">
+        <p class="footer-text">
+            Golden Trading Journal © 2026 — Built for disciplined traders. 
+            <br class="mobile-break">
+            Created by 
+            <a href="https://daliborsuvajcevic.github.io/digital-card/" target="_blank" rel="noopener noreferrer" class="footer-link">
+                Dalibor Suvajčević
+            </a>
+            <span class="entrepreneur-badge">
+                <!-- Detaljna SVG Kruna (Zlatna) -->
+                <svg class="crown-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 16L3 5L8.5 10L12 4L15.5 10L21 5L19 16H5ZM19 19C19 19.5523 18.5523 20 18 20H6C5.44772 20 5 19.5523 5 19V18H19V19Z" fill="currentColor"/>
+                    <circle cx="12" cy="9" r="1.5" fill="#0d0f12"/> <!-- Tamni dragulj u kruni za kontrast -->
+                    <circle cx="7.5" cy="11" r="1" fill="#0d0f12"/>
+                    <circle cx="16.5" cy="11" r="1" fill="#0d0f12"/>
+                </svg>
+                <span class="entrepreneur-text">Digital <strong>ENTREPRENEUR</strong></span>
+            </span>
+        </p>
+    </div>
+</footer>
+    </div>
+
+    <!-- Modals -->
+    <!-- Info Modal -->
+    <div id="infoModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Kako koristiti Golden Trading Journal</h2>
+            <h3>Cilj:</h3>
+            <p>Praćenje svakog trade-a sa fokusom na rizik, emocionalno stanje i plan.</p>
+            <h3>Kako se računa sve?</h3>
+            <ul>
+                <li><strong>Rizik (%):</strong> Primenuje se na trenutni balans (ne početni).</li>
+                <li><strong>Veličina pozicije:</strong> (Rizik u $) / |Entry – Stop Loss|</li>
+                <li><strong>R:R:</strong> (Take Profit – Entry) / (Entry – Stop Loss)</li>
+                <li><strong>Tilt Detection:</strong> Automatsko upozorenje nakon 3 uzastopna gubitka.</li>
+            </ul>
+            <p><em>Golden Trading Journal je napravljen za one koji trguju sa glavom, a ne srcem.</em></p>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <span class="settings-close close-btn">&times;</span>
+            <h2>⚙️ Podešavanja</h2>
+            <div class="settings-group">
+                <h3>Daily Limits</h3>
+                <div class="form-group">
+                    <label>Max Trades per Day</label>
+                    <input type="number" id="maxTradesPerDay" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Max Daily Loss (%)</label>
+                    <input type="number" id="maxDailyLossPercent" class="form-control" step="0.1">
+                </div>
+            </div>
+            <div class="settings-group">
+                <h3>Tilt Protection</h3>
+                <div class="form-group">
+                    <label>Consecutive Losses before Tilt Warning</label>
+                    <input type="number" id="tiltLossThreshold" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Break Duration (minutes)</label>
+                    <input type="number" id="tiltBreakMinutes" class="form-control">
+                </div>
+            </div>
+            <button id="saveSettingsBtn" class="btn btn-primary">Sačuvaj Podešavanja</button>
+        </div>
+    </div>
+
+    <!-- Edit Trade Modal -->
+    <div id="editTradeModal" class="modal">
+        <div class="modal-content">
+            <span class="edit-close close-btn">&times;</span>
+            <h2>✏️ Edit Trade</h2>
+            <form id="editTradeForm">
+                <input type="hidden" id="editTradeId">
+                <div class="form-group">
+                    <label>Trading Pair</label>
+                    <input type="text" id="editPair" class="form-control" required>
+                </div>
+                <div class="form-grid-two-col">
+                    <div class="form-group">
+                        <label>Entry Price</label>
+                        <input type="number" id="editEntry" class="form-control" step="0.00001" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Stop Loss</label>
+                        <input type="number" id="editStopLoss" class="form-control" step="0.00001" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Take Profit</label>
+                        <input type="number" id="editTakeProfit" class="form-control" step="0.00001" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Exit Price (Optional)</label>
+                        <input type="number" id="editExitPrice" class="form-control" step="0.00001">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Setup</label>
+                    <select id="editSetup" class="form-control">
+                        <option value="Breakout">Breakout</option>
+                        <option value="Pullback">Pullback</option>
+                        <option value="Reversal">Reversal</option>
+                        <option value="Range">Range</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Session</label>
+                    <select id="editSession" class="form-control">
+                        <option value="Asia">Asia</option>
+                        <option value="London">London</option>
+                        <option value="New York">New York</option>
+                        <option value="Overlap">Overlap</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Emotion (1-10)</label>
+                    <input type="number" id="editEmotion" class="form-control" min="1" max="10">
+                </div>
+                <div class="form-group">
+                    <label>Followed Plan</label>
+                    <select id="editFollowedPlan" class="form-control">
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Result</label>
+                    <select id="editResult" class="form-control">
+                        <option value="Win">Win</option>
+                        <option value="Loss">Loss</option>
+                        <option value="BE">BE</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea id="editNotes" class="form-control" rows="2"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Sačuvaj Izmene</button>
+                    <button type="button" id="deleteTradeBtn" class="btn btn-secondary" style="border-color: var(--negative); color: var(--negative);">🗑️ Obriši Trade</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
