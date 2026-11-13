@@ -1,0 +1,14 @@
+{
+  "name": "golden-trading-journal",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Golden Trading Journal v2. Static app, no build step.",
+  "scripts": {
+    "start": "node tools/serve.mjs",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "jsdom": "^31.0.0"
+  }
+}
