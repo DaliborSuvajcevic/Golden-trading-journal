@@ -2,7 +2,7 @@
 
 Dnevnik trgovanja u okviru ekosistema The Golden Circle. Statična aplikacija: čist HTML, CSS i JavaScript (ES moduli), bez frameworka, bez build koraka i bez spoljnih zavisnosti u browseru.
 
-Status: v2 zamenjuje v1 na GitHub Pages. Poslednje stanje v1 je označeno git tagom `v1` i može da se vrati.
+Status: v2 zamenjuje v1 na GitHub Pages. Poslednje stanje v1 je sačuvano u grani `v1` i može da se vrati.
 
 ## Pokretanje na localhostu
 
