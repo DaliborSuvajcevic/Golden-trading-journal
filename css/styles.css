@@ -4,7 +4,8 @@
    Brand tokens come from THE GOLDEN CIRCLE master brand document:
    black #111111, gold #FFB132, cream #F7F3EA, white #FFFFFF.
    Gold is an accent only. No gradients, no glow, no shadows.
-   Typography uses system fonts; no official brand font is defined yet.
+   Typography: Playfair Display (serif, display/headings) + Inter (sans, UI/body),
+   per THE GOLDEN CIRCLE brand typography standard.
    ========================================================================== */
 
 :root {
@@ -23,8 +24,8 @@
   --positive: #7CC49A;
   --negative: #E27D6D;
 
-  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
-  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --serif: "Playfair Display", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --radius: 4px;
 
   color-scheme: dark;
