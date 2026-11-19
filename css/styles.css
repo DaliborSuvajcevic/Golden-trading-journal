@@ -395,3 +395,26 @@ th.num, td.num { text-align: right; }
     to { opacity: 1; transform: none; }
   }
 }
+
+/* ==========================================================================
+   Light theme. Follows the theme chosen in The Golden Circle app
+   (localStorage "gc:v1".theme), set on <html data-theme="light">.
+   ========================================================================== */
+html[data-theme="light"] {
+  --black: #F7F3EA;
+  --white: #111111;
+  --cream: #111111;
+  --surface: #FFFFFF;
+  --line: rgba(17, 17, 17, 0.14);
+  --line-strong: rgba(17, 17, 17, 0.3);
+  --muted: rgba(17, 17, 17, 0.66);
+  --positive: #2F7A4F;
+  --negative: #B23B1E;
+  color-scheme: light;
+}
+html[data-theme="light"] .btn.primary,
+html[data-theme="light"] .skip { color: #111111; }
+html[data-theme="light"] .gold,
+html[data-theme="light"] .meta dd.gold { color: #8A5A00; }
+html[data-theme="light"] .day.profit,
+html[data-theme="light"] .day.loss { color: #111111; }
