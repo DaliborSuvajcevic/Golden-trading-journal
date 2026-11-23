@@ -43,7 +43,7 @@ npm test
 ```
 index.html            jedina stranica
 css/styles.css        izgled, brend tokeni na vrhu fajla
-assets/crown.png      originalna kruna, neizmenjena
+assets/crown.png      kruna iz zvaničnog logoa (linijska kruna, od 23. 11. 2026)
 js/main.js            ulazna tačka u browseru
 js/app.js             stanje, čuvanje, navigacija, tilt sat
 js/calc.js            sav obračun, čiste funkcije
