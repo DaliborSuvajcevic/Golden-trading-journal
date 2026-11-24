@@ -33,11 +33,14 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
-html { -webkit-text-size-adjust: 100%; }
+html { -webkit-text-size-adjust: 100%; touch-action: manipulation; overflow-x: hidden; overflow-x: clip; }
+body, button, a, input, select, textarea, label { touch-action: manipulation; }
 html.has-modal { overflow: hidden; }
 
 body {
   margin: 0;
+  overflow-x: hidden;
+  overflow-x: clip;
   min-height: 100vh;
   background: var(--black);
   color: var(--white);
@@ -267,6 +270,16 @@ input[type="text"], input[type="number"], input[type="search"], input[type="date
   background: var(--black); color: var(--white); font: inherit;
 }
 textarea { resize: vertical; }
+/* iOS: polje za datum ima sopstvenu minimalnu širinu i izlazi iz kolone */
+input[type="datetime-local"] {
+  -webkit-appearance: none; appearance: none;
+  display: block; box-sizing: border-box; min-width: 0; max-width: 100%;
+  min-height: 46px; text-align: left;
+}
+input[type="datetime-local"]::-webkit-date-and-time-value { text-align: left; margin: 0; }
+input[type="datetime-local"]::-webkit-datetime-edit { padding: 0; }
+/* iOS zumira na fokus ako je tekst polja manji od 16px */
+input, select, textarea { font-size: max(16px, 1em); }
 input::placeholder { color: rgba(255, 255, 255, 0.4); }
 input[aria-invalid="true"], textarea[aria-invalid="true"] { border-color: var(--negative); }
 input[type="range"] { width: 100%; accent-color: var(--gold); }
